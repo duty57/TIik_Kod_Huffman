@@ -272,12 +272,63 @@ void codeString(string file, const vector<pair<int, string>>& codes, string & co
 	}
 }
 
+//binary string to char
+//then compress file
+//and decompress file
+
+void convertStringToChar(string codedString, string file) {
+	int count = 0;
+	string namebase = file.substr(0, file.find("."));
+	ofstream plik(namebase + ".compressed", ios::binary);
+	if (plik.is_open()) {
+		string byte;
+		for (int i = 0; i < codedString.length(); i++) {
+			byte += codedString[i];
+			if (byte.length() == 8) {
+				char c = 0;
+				for (int j = 0; j < 8; j++) {
+					if (byte[j] == '1') {
+						c |= 1 << (7 - j);
+					}
+				}
+				count++;
+				plik.put(c);
+				byte.clear();
+			}
+			else if (codedString.length() == 2+i) count++;
+		}
+		cout<<"Plik zostal skompresowany do pliku "<<namebase<<".compressed"<<" i zajmuje "<< count<<" bity"<<endl;
+		plik.close();
+	}
+	else {
+		cout<<"Nie udalo sie otworzyc pliku\n";
+	}
+}
+
+string convertFileToBinary(string file) {
+	string namebase = file.substr(0, file.find("."));
+	ifstream plik(namebase + ".compressed", ios::binary);
+	string binaryString;
+	if (plik.is_open()) {
+		while (!plik.eof()) {
+			char c;
+			plik.get(c);
+			for (int i = 7; i >= 0; i--) {
+				binaryString += ((c >> i) & 1) + '0';
+			}
+		}
+		plik.close();
+	}
+	else {
+		cout<<"Nie udalo sie otworzyc pliku\n";
+	}
+	return binaryString;
+}	
 
 
+void decodeString(TreeNode* root, string file, const vector<pair<int, string>>& codes) {
 
-void decodeString(TreeNode* root, string file, const vector<pair<int, string>>& codes, string codedString) {
-
-
+	string codedString = convertFileToBinary(file);
 
 	string namebase = file.substr(0, file.find("."));
 	ofstream plik(namebase + ".recovery");//creating file for decoded string
@@ -341,7 +392,8 @@ int main(int argc, char* argv[])
 	createHuffmanCode(root, "", codes);
 	saveHuffmanCode(codes, file);
 	codeString(file, codes, codedString);
-	decodeString(root, file, codes, codedString);
+	convertStringToChar(codedString, file);
+	decodeString(root, file, codes);
 
 	return 0;
 }
