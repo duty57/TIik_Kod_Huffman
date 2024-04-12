@@ -275,44 +275,45 @@ void codeString(string file, const vector<pair<int, string>>& codes, string & co
 //binary string to char
 //then compress file
 //and decompress file
-
 void convertStringToChar(string codedString, string file) {
-	int count = 0;
 	string namebase = file.substr(0, file.find("."));
 	ofstream plik(namebase + ".compressed", ios::binary);
+
 	if (plik.is_open()) {
 		string byte;
 		for (int i = 0; i < codedString.length(); i++) {
 			byte += codedString[i];
-			if (byte.length() == 8) {
+
+			if (byte.length() == 8 || i == codedString.length() - 1) {
+				// Convert binary string 'byte' to a char and write to file
 				char c = 0;
-				for (int j = 0; j < 8; j++) {
+				for (int j = 0; j < byte.length(); j++) {
 					if (byte[j] == '1') {
-						c |= 1 << (7 - j);
+						c |= (1 << (7 - j));
 					}
 				}
-				count++;
 				plik.put(c);
-				byte.clear();
+				byte.clear(); // Clear 'byte' for next set of bits
 			}
-			else if (codedString.length() == 2+i) count++;
 		}
-		cout<<"Plik zostal skompresowany do pliku "<<namebase<<".compressed"<<" i zajmuje "<< count<<" bity"<<endl;
+
+		cout << "File compressed to " << namebase << ".compressed and occupies " << codedString.length() << " bits." << endl;
 		plik.close();
 	}
 	else {
-		cout<<"Nie udalo sie otworzyc pliku\n";
+		cout << "Failed to open file for writing." << endl;
 	}
 }
 
+//count freq of chars and decrement it value
 string convertFileToBinary(string file) {
 	string namebase = file.substr(0, file.find("."));
 	ifstream plik(namebase + ".compressed", ios::binary);
 	string binaryString;
+
 	if (plik.is_open()) {
-		while (!plik.eof()) {
-			char c;
-			plik.get(c);
+		char c;
+		while (plik.get(c)) {
 			for (int i = 7; i >= 0; i--) {
 				binaryString += ((c >> i) & 1) + '0';
 			}
@@ -320,48 +321,67 @@ string convertFileToBinary(string file) {
 		plik.close();
 	}
 	else {
-		cout<<"Nie udalo sie otworzyc pliku\n";
+		cout << "Failed to open file for reading." << endl;
 	}
-	return binaryString;
-}	
 
+	return binaryString;
+}
 
 void decodeString(TreeNode* root, string file, const vector<pair<int, string>>& codes) {
+
+	vector<pair<pair<int, string>, int>> coding;
+	for (int i = 0; i < codes.size(); i++) {
+		for (int j = 0; j < freq.size(); j++) {
+			if (codes[i].first == chars[j]) {
+				coding.push_back({ {codes[i].first, codes[i].second}, freq[j] });
+				break;
+			}
+		}
+	}
 
 	string codedString = convertFileToBinary(file);
 
 	string namebase = file.substr(0, file.find("."));
-	ofstream plik(namebase + ".recovery");//creating file for decoded string
-	if (plik.is_open()) {
+	ofstream plik(namebase + ".recovery");
 
-		TreeNode* start = root;
+	if (plik.is_open()) {
 		TreeNode* current = root;
-		for (int i = 0; i < codedString.length(); i++) {
-			while (current->left != NULL && current->right != NULL) {
-				if (codedString[i] == '0') {
-					current = current->left;
-				}
-				else {
-					current = current->right;
-				}
-				i++;
+		for (char bit : codedString) {//and check freq
+			if (bit == '0') {
+				current = current->left;
 			}
-			for (int j = 0; j < codes.size(); j++) {
-				if (current->data == codes[j].first) {
-					plik << (char)current->data;
-					current = start;
-					break;
-				}
+			else if (bit == '1') {
+				current = current->right;
 			}
-			i--;
+
+			if (current->left == nullptr && current->right == nullptr) {
+				int k = 0; //show position of char in coding
+				// Leaf node reached, write character to output file
+				for (int i = 0; i < coding.size(); i++) {
+					if (coding[i].first.first == current->data) {
+						k = i;
+						break;
+					}
+				}
+				/*cout << "freq: " << endl;
+				cout << coding[k].first.first << " " << coding[k].first.second << " " << coding[k].second << endl;
+				*/
+				if (coding[k].second > 0) {
+					coding[k].second--;
+					plik.put(current->data);
+				}
+				/*else {
+					cout<<"Error: frequency of char is 0\n";
+				}*/
+				current = root; // Reset to the root for next character
+			}
 		}
 		plik.close();
+		cout << "Decoding complete. Result written to " << namebase << ".recovery" << endl;
 	}
 	else {
-		cout<<"Nie udalo sie otworzyc pliku\n";
+		cout << "Failed to open file for writing." << endl;
 	}
-
-
 }
 
 
