@@ -10,12 +10,19 @@ vector<int> freq;
 
 
 struct TreeNode {
-	char data;
+	int data;
 	int freq;
 
 	TreeNode* left, * right, *parent;
 };
    
+//creating balanced huffman tree
+
+struct CompareNodes {
+	bool operator()(TreeNode* const& a, TreeNode* const& b) {
+		return a->freq > b->freq; // Min-heap based on frequency
+	}
+};
 
 void ileBajtow(string file){
 
@@ -129,18 +136,11 @@ void modelSort(string file) {
 
 }
 
-//creating balanced huffman tree
-
-struct CompareNodes {
-	bool operator()(TreeNode* const& a, TreeNode* const& b) {
-		return a->freq > b->freq; // Min-heap based on frequency
-	}
-};
 
 void createHuffmanTree(TreeNode*& root) {
 	// Create a priority queue (min-heap) of TreeNodes
 	priority_queue<TreeNode*, vector<TreeNode*>, CompareNodes> minHeap;
-
+	int k = 0; // iterator for the chars and freq vectors
 	// Create leaf nodes for each character with its frequency
 	for (int i = 0; i < chars.size(); i++) {
 		TreeNode* node = new TreeNode;
@@ -160,13 +160,13 @@ void createHuffmanTree(TreeNode*& root) {
 
 		// Create a new parent node with the combined frequency
 		TreeNode* parent = new TreeNode;
-		parent->data = 0; // Not a leaf node, data is irrelevant
+		parent->data = 256 + k; // Not a leaf node, data is irrelevant
 		parent->freq = left->freq + right->freq;
 		parent->left = left;
 		parent->right = right;
 		left->parent = parent;
 		right->parent = parent;
-
+		k++;
 		// Push the new parent node back into the min-heap
 		minHeap.push(parent);
 	}
@@ -176,15 +176,37 @@ void createHuffmanTree(TreeNode*& root) {
 }
 
 
-void printTree(TreeNode* root, int level) {
-	if (root != NULL) {
-		printTree(root->right, level + 1);
+
+void printTree(TreeNode* root,vector<vector<int>>& treeStruct, int level) {
+	if (root != NULL && root->left != NULL && root->right != NULL) {
+		treeStruct.push_back({ root->data, root->left->data, root->right->data });
+		printTree(root->right,treeStruct, level + 1);
 		for (int i = 0; i < level; i++) {
 			cout << "   ";
 		}
-		cout << root->data << " " << root->freq << endl;
-		printTree(root->left, level + 1);
+		//cout << root->data << " " << root->freq << endl;
+		printTree(root->left, treeStruct, level + 1);
 	}
+}
+
+void saveTree(TreeNode* root, const vector<vector<int>>& treeStruct ,string file ) {
+	string namebase = file.substr(0, file.find("."));
+
+	cout<<"Drzewo Huffmana"<<endl;
+
+	ofstream plik(namebase + ".drzewo");
+	for (int i = 0; i < treeStruct.size(); i++) {
+		for (int j = 0; j < treeStruct[i].size(); j++) {
+			plik<<treeStruct[i][j]<<" ";
+			cout << treeStruct[i][j] << " ";;
+
+		}
+		plik<<endl;
+		cout << endl;
+	}
+	
+
+	plik.close();
 }
 
 void deleteTree(TreeNode* root) {
@@ -195,8 +217,6 @@ void deleteTree(TreeNode* root) {
 	}
 }
 
-<<<<<<< Updated upstream
-=======
 
 void createHuffmanCode(TreeNode* root, string code, vector<pair<int, string>>& codes) {
 	if (root == NULL) {
@@ -254,6 +274,7 @@ void codeString(string file, const vector<pair<int, string>>& codes, string & co
 
 
 
+
 void decodeString(TreeNode* root, string file, const vector<pair<int, string>>& codes, string codedString) {
 
 	vector<pair<pair<int, string>, int>> coding;
@@ -301,11 +322,14 @@ void decodeString(TreeNode* root, string file, const vector<pair<int, string>>& 
 }
 
 
->>>>>>> Stashed changes
+
 int main(int argc, char* argv[])
 {
 	string file;
 	TreeNode *root = nullptr;
+	vector<vector<int>> treeStruct;
+	vector<pair<int, string>> codes;
+	string codedString;
 
 	if (argc == 2) {
 		file = argv[1];
@@ -320,16 +344,13 @@ int main(int argc, char* argv[])
 	model(file);
 	modelSort(file);
 	createHuffmanTree(root);
-<<<<<<< Updated upstream
-	printTree(root, 0);
-=======
 	printTree(root,treeStruct, 0);
 	saveTree(root, treeStruct, file);
 	createHuffmanCode(root, "", codes);
 	saveHuffmanCode(codes, file);
 	codeString(file, codes, codedString);
 	decodeString(root, file, codes, codedString);
->>>>>>> Stashed changes
+
 	return 0;
 }
 
