@@ -244,6 +244,33 @@ void saveHuffmanCode(const vector<pair<int, string>>& codes, string file) {
 	plik.close();
 }
 
+void codeString(string file, const vector<pair<int, string>>& codes, string & codedString) {
+	ifstream plik(file, ios::binary);
+	if (plik.is_open()) {
+		string namebase = file.substr(0, file.find("."));
+		ofstream plik2(namebase + ".kod");
+		if (plik2.is_open()) {
+			while (!plik.eof()) {
+				char c;
+				plik.get(c);
+				for (int i = 0; i < codes.size(); i++) {
+					if (codes[i].first == c) {
+						codedString += codes[i].second;
+						break;
+					}
+				}
+			}
+			plik2 << codedString;
+		}
+		else {
+			cout<<"Nie udalo sie otworzyc pliku\n";
+		}
+		plik.close();
+	}
+	else {
+		cout<<"Nie udalo sie otworzyc pliku\n";
+	}
+}
 
 
 int main(int argc, char* argv[])
@@ -252,6 +279,7 @@ int main(int argc, char* argv[])
 	TreeNode *root = nullptr;
 	vector<vector<int>> treeStruct;
 	vector<pair<int, string>> codes;
+	string codedString;
 
 	if (argc == 2) {
 		file = argv[1];
@@ -270,6 +298,7 @@ int main(int argc, char* argv[])
 	saveTree(root, treeStruct, file);
 	createHuffmanCode(root, "", codes);
 	saveHuffmanCode(codes, file);
+	codeString(file, codes, codedString);
 	return 0;
 }
 
