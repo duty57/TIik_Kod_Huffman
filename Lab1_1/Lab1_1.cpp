@@ -277,15 +277,7 @@ void codeString(string file, const vector<pair<int, string>>& codes, string & co
 
 void decodeString(TreeNode* root, string file, const vector<pair<int, string>>& codes, string codedString) {
 
-	vector<pair<pair<int, string>, int>> coding;
-	for (int i = 0; i < codes.size(); i++) {
-		for (int j = 0; j < freq.size(); j++) {
-			if (codes[i].first == chars[j]) {
-				coding.push_back({ {codes[i].first, codes[i].second}, freq[j] });
-				break;
-			}
-		}
-	}
+
 
 	string namebase = file.substr(0, file.find("."));
 	ofstream plik(namebase + ".recovery");//creating file for decoded string
@@ -303,7 +295,7 @@ void decodeString(TreeNode* root, string file, const vector<pair<int, string>>& 
 				}
 				i++;
 			}
-			for (int j = 0; j < coding.size(); j++) {
+			for (int j = 0; j < codes.size(); j++) {
 				if (current->data == codes[j].first) {
 					plik << (char)current->data;
 					current = start;
