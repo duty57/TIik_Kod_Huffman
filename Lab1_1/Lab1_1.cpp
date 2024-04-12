@@ -195,6 +195,113 @@ void deleteTree(TreeNode* root) {
 	}
 }
 
+<<<<<<< Updated upstream
+=======
+
+void createHuffmanCode(TreeNode* root, string code, vector<pair<int, string>>& codes) {
+	if (root == NULL) {
+		return;
+	}
+
+	if (root->left == NULL && root->right == NULL) {
+		codes.push_back({ root->data, code });
+	}
+
+	createHuffmanCode(root->left, code + "0", codes);
+	createHuffmanCode(root->right, code + "1", codes);
+}
+
+void saveHuffmanCode(const vector<pair<int, string>>& codes, string file) {
+	string namebase = file.substr(0, file.find("."));
+
+	cout<<"Tabela kodu Huffmana"<<endl;
+
+	ofstream plik(namebase + ".TabelaKodu");
+	for (int i = 0; i < codes.size(); i++) {
+		plik<<codes[i].first<<" "<<codes[i].second<<" "<<codes[i].second.length() << endl;
+		cout<<codes[i].first<<" "<<codes[i].second<<" "<<codes[i].second.length() << endl;
+	}
+	plik.close();
+}
+
+void codeString(string file, const vector<pair<int, string>>& codes, string & codedString) {
+	ifstream plik(file, ios::binary);
+	if (plik.is_open()) {
+		string namebase = file.substr(0, file.find("."));
+		ofstream plik2(namebase + ".kod");
+		if (plik2.is_open()) {
+			while (!plik.eof()) {
+				char c;
+				plik.get(c);
+				for (int i = 0; i < codes.size(); i++) {
+					if (codes[i].first == c) {
+						codedString += codes[i].second;
+						break;
+					}
+				}
+			}
+			plik2 << codedString;
+		}
+		else {
+			cout<<"Nie udalo sie otworzyc pliku\n";
+		}
+		plik.close();
+	}
+	else {
+		cout<<"Nie udalo sie otworzyc pliku\n";
+	}
+}
+
+
+
+void decodeString(TreeNode* root, string file, const vector<pair<int, string>>& codes, string codedString) {
+
+	vector<pair<pair<int, string>, int>> coding;
+	for (int i = 0; i < codes.size(); i++) {
+		for (int j = 0; j < freq.size(); j++) {
+			if (codes[i].first == chars[j]) {
+				coding.push_back({ {codes[i].first, codes[i].second}, freq[j] });
+				break;
+			}
+		}
+	}
+
+	string namebase = file.substr(0, file.find("."));
+	ofstream plik(namebase + ".recovery");//creating file for decoded string
+	if (plik.is_open()) {
+
+		TreeNode* start = root;
+		TreeNode* current = root;
+		for (int i = 0; i < codedString.length(); i++) {
+			while (current->left != NULL && current->right != NULL) {
+				if (codedString[i] == '0') {
+					current = current->left;
+				}
+				else {
+					current = current->right;
+				}
+				i++;
+			}
+			for (int j = 0; j < coding.size(); j++) {
+				if (current->data == codes[j].first) {
+					plik << (char)current->data;
+					current = start;
+					break;
+				}
+			}
+			i--;
+		}
+		plik.close();
+	}
+	else {
+		cout<<"Nie udalo sie otworzyc pliku\n";
+	}
+
+
+}
+
+
+>>>>>>> Stashed changes
 int main(int argc, char* argv[])
 {
 	string file;
@@ -213,7 +320,16 @@ int main(int argc, char* argv[])
 	model(file);
 	modelSort(file);
 	createHuffmanTree(root);
+<<<<<<< Updated upstream
 	printTree(root, 0);
+=======
+	printTree(root,treeStruct, 0);
+	saveTree(root, treeStruct, file);
+	createHuffmanCode(root, "", codes);
+	saveHuffmanCode(codes, file);
+	codeString(file, codes, codedString);
+	decodeString(root, file, codes, codedString);
+>>>>>>> Stashed changes
 	return 0;
 }
 
