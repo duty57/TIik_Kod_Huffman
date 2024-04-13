@@ -234,12 +234,24 @@ void createHuffmanCode(TreeNode* root, string code, vector<pair<int, string>>& c
 void saveHuffmanCode(const vector<pair<int, string>>& codes, string file) {
 	string namebase = file.substr(0, file.find("."));
 
+
+
+	vector<pair<pair<int, string>, int>> coding;//char, code, freq
+	for (int i = 0; i < codes.size(); i++) {
+		for (int j = 0; j < freq.size(); j++) {
+			if (codes[i].first == chars[j]) {
+				coding.push_back({ {codes[i].first, codes[i].second}, freq[j] });
+				break;
+			}
+		}
+	}
+
 	cout<<"Tabela kodu Huffmana"<<endl;
 
 	ofstream plik(namebase + ".TabelaKodu");
 	for (int i = 0; i < codes.size(); i++) {
-		plik<<codes[i].first<<" "<<codes[i].second<<" "<<codes[i].second.length() << endl;
-		cout<<codes[i].first<<" "<<codes[i].second<<" "<<codes[i].second.length() << endl;
+		plik<<codes[i].first<<" "<<codes[i].second<<" "<< coding[i].second << endl;
+		cout<<codes[i].first<<" "<<codes[i].second<<" "<< coding[i].second << endl;
 	}
 	plik.close();
 }
@@ -327,17 +339,29 @@ string convertFileToBinary(string file) {
 	return binaryString;
 }
 
-void decodeString(TreeNode* root, string file, const vector<pair<int, string>>& codes) {
+//read freq(last element of string) from TabelaKodu and save it to vector
+void readFreq(string file, vector<pair<pair<int, string>, int>>& coding) {
+	string namebase = file.substr(0, file.find("."));
+	ifstream plik(namebase + ".TabelaKodu");
+	if (plik.is_open()) {
+		while (!plik.eof()) {
+			int c;
+			string code;
+			int _freq;
+			plik >> c >> code >> _freq;
+			coding.push_back({ {c, code}, _freq });
 
-	vector<pair<pair<int, string>, int>> coding;
-	for (int i = 0; i < codes.size(); i++) {
-		for (int j = 0; j < freq.size(); j++) {
-			if (codes[i].first == chars[j]) {
-				coding.push_back({ {codes[i].first, codes[i].second}, freq[j] });
-				break;
-			}
 		}
+		plik.close();
 	}
+	else {
+		cout << "Failed to open file for reading." << endl;
+	}
+}
+
+
+void decodeString(TreeNode* root, string file, const vector<pair<int, string>>& codes, vector<pair<pair<int, string>, int>>& coding) {
+
 
 	string codedString = convertFileToBinary(file);
 
@@ -393,6 +417,7 @@ int main(int argc, char* argv[])
 	vector<vector<int>> treeStruct;
 	vector<pair<int, string>> codes;
 	string codedString;
+	vector<pair<pair<int, string>, int>> coding;//char, code, freq
 
 	if (argc == 2) {
 		file = argv[1];
@@ -413,7 +438,8 @@ int main(int argc, char* argv[])
 	saveHuffmanCode(codes, file);
 	codeString(file, codes, codedString);
 	convertStringToChar(codedString, file);
-	decodeString(root, file, codes);
+	readFreq(file, coding);
+	decodeString(root, file, codes, coding);
 
 	return 0;
 }
